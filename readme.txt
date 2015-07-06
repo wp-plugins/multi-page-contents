@@ -4,7 +4,7 @@ Tags: multi,page,content,text,chapters, divide,
 License: GPLv2
 Requires at least: 2.7
 Tested up to: 4.2.2
-Stable tag: 1.0
+Stable tag: 1.01
 
 You 
 

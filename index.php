@@ -3,7 +3,7 @@
    Plugin Name:  Multi-Page content (Chapters)
    Description: Make a single post(or etc..) and divide it in Multiple pages, like a chaptered book.  (P.S.  OTHER MUST-HAVE PLUGINS FOR EVERYONE: http://bitly.com/MWPLUGINS  )
    contributors: selnomeria
-   Version: 1.0
+   Version: 1.01
    LICENCE: Free
 */
 if ( ! defined( 'ABSPATH' ) ) exit; //Exit if accessed directly
@@ -123,7 +123,7 @@ function startt_func__MPCC(){
 			
 			  <div class="Opacity__mpcc <?php echo ($chaptingEnabled? "Opacity_FULL__mpcc":"");?> ">
 			    Title for Base Content (<a href="javascript:alert('In case you will use chapters, then in this field, insert the CHAPTER-title for the main content (which is below, in main text editor)');">Read this popup!</a>):  
-			    <input type="text" name="title1__MPCC" id="title1__MPCC" value="<?php echo $ThisPostCh[0]->partTITLE;?>"  placeholder="Title for Base content "  />
+			    <input type="text" name="title1__MPCC" id="title1__MPCC" value="<?php echo stripslashes($ThisPostCh[0]->partTITLE);?>"  placeholder="Title for Base content "  />
 			  </div>
 			 <!-- <div style="clear:both;width:100%;height:20px;background:black;margin:0 0 40px 0;"></div> -->
 			</div>
@@ -193,7 +193,7 @@ function startt_func__MPCC(){
 											{name: "contentt_"+i,	value: getContentt("mp_TXTid_"+i)}		);
 					}
 					jQuery.post('./index.php?mp_action=SaveMPbook',     Array__mpcc,     function(response,status){
-						if(status == "success") { if(response!="success_MPCC"){alert("\r\n\r\nER_MSG:"+response); return false;} ALLOWED__MPCC=true;  if (SubmitButton)	{SubmitButton.click();} else if (PublishButton)	{PublishButton.click();} }     else {alert("error245_"+ErrorMessage);}
+						if(status == "success") { if(response!="success_MPCC"){alert("\r\n\r\nERRorr_MSG:"+response); return false;} ALLOWED__MPCC=true;  if (SubmitButton)	{SubmitButton.click();} else if (PublishButton)	{PublishButton.click();} }     else {alert("error245_"+ErrorMessage);}
 					});
 					//myyAjaxRequest('param1=abc&param2=abc', './index.php?mp_action=SaveMPbook',  "POST", 'if(responseee!="success_MPCC"){alert("\r\n\r\nER_MSG:"+responseee); return false;} ALLOWED__MPCC=true;  jQuery("input#publish, input#save-post").click(); ', true);
 					e.preventDefault(); return false; 
@@ -263,7 +263,7 @@ add_action('init','Ajax_wpeditor__MPCC',1);  function Ajax_wpeditor__MPCC(){	if 
 function output_MPbook_editor__MPCC($postid, $numb){ global $wpdb;
 	$currentPart = GetPostChapt__MPCC($postid, $numb);
 	if ($currentPart)	{ 
-		$cTITLE= $currentPart[0]->partTITLE;
+		$cTITLE= stripslashes($currentPart[0]->partTITLE);
 		$cCONTENT= $currentPart[0]->content;
 	}
 	else	{$post=get_post($postid);$exploded=get_chapters__MPCC($post->post_content);
@@ -296,13 +296,16 @@ add_action('init', 'save_book__MPCC',1); function save_book__MPCC(){ global $wpd
 	  //update INDEX record for post id
 		UPDATEE_OR_INSERTTT__MPCC(TableName1__MPCC, array('PartsAmount'=>$ChaptersAmount, 'Extr1'=> $c_EnblDisb ),	array('postID'=> $PostId, 'part'=> 0 ) );
 	  //update the first (main content)
-		$contnt=  ($_POST['AreaTypee_' . 'content']=='htmll'  ?  wpautop( $_POST['PostCont'], true)   :   stripslashes($_POST['PostCont'])  ) ;
-		UPDATEE_OR_INSERTTT__MPCC(TableName1__MPCC, array('content'=>$contnt, 'partTITLE'=> sanitize_title($_POST['PostHtitle'])),  array('postID'=> $PostId, 'part'=> 1) );
+		$title= $_POST['PostHtitle']; 
+		$pcont = stripslashes($_POST['contentt_'.$i]);
+		$contnt=  ($_POST['AreaTypee_' . 'content']=='htmll'  ?  wpautop( $pcont, true)   :  $pcont) ;
+		UPDATEE_OR_INSERTTT__MPCC(TableName1__MPCC, array('content'=>$contnt, 'partTITLE'=> $title),  array('postID'=> $PostId, 'part'=> 1) );
 	  //update contents
 	  for($i=2; $i <= $ChaptersAmount; $i++){
-		$title= stripslashes($_POST['titlee_'.$i]);
-		$got_contn = ($_POST['AreaTypee_'. 'mp_TXTid_'.$i]=='tinymcee'  ?  wpautop($_POST['contentt_'.$i], true) : stripslashes($_POST['contentt_'.$i])  ) ; 
-		$contn = TitleStart__MPCC.$title.TitleEnd__MPCC   .   str_ireplace(Pregex1__MPCC,'',$got_contn);
+		$title= $_POST['titlee_'.$i]; 
+		$pcont = stripslashes($_POST['contentt_'.$i]);
+		$contn = ($_POST['AreaTypee_'. 'mp_TXTid_'.$i]=='htmll'  ?  wpautop($pcont, true) : $pcont  ) ; 
+		$contn = TitleStart__MPCC.$title.TitleEnd__MPCC   .   str_ireplace(Pregex1__MPCC,'',$contn);
 		UPDATEE_OR_INSERTTT__MPCC( TableName1__MPCC, 	array('content'=>$contn, 'partTITLE'=> $title),	array('postID'=> $PostId, 'part'=> $i) );
 	  }
 	  //delete previous revisions & drafts
@@ -318,8 +321,12 @@ add_action('init', 'save_book__MPCC',1); function save_book__MPCC(){ global $wpd
 		//Re-used functions
 		function CurrentUserCanEditThis__MPCC($postid){	require_once(ABSPATH . 'wp-includes/pluggable.php'); global $wpdb,$current_user;
 			$authorID = $wpdb->get_var($wpdb->prepare("SELECT post_author FROM ".$wpdb->prefix."posts WHERE ID ='%d'",  $postid) );
-			if (!$authorID && current_user_can('edit_posts')) {return true;}	//If opening new post
-			if ($authorID) { if ($authorID == $current_user->ID || current_user_can('delete_others_posts')) { return true; } }
+			//If opening new post
+			if (!$authorID) { 
+				if (current_user_can('edit_posts')) {return true;}			}
+			//If editing
+			if ($authorID) { 
+				if ($authorID == $current_user->ID || current_user_can('delete_others_posts')) { return true; } 	}	
 			return false;
 		}
 
@@ -366,7 +373,7 @@ add_filter('the_content','output_toc__MPCC',88);	function output_toc__MPCC($cont
 function get_table_of_contents($content){	global $wpdb,$post;  
   $currentPost = GetPostChapt__MPCC($post->ID); 
   if (!empty($currentPost[0])){
-	foreach ($currentPost as $eachPart) {if (0==$eachPart->part){$chapAmnt=$eachPart->PartsAmount; $c_EnblDisb=   "m_enabled"==$eachPart->Extr1; }   if (1==$eachPart->part){$postHtitle=$eachPart->partTITLE;}  }
+	foreach ($currentPost as $eachPart) {if (0==$eachPart->part){$chapAmnt=$eachPart->PartsAmount; $c_EnblDisb=   "m_enabled"==$eachPart->Extr1; }   if (1==$eachPart->part){$postHtitle=stripslashes($eachPart->partTITLE);}  }
 	if (isset($chapAmnt) && $chapAmnt>1 && $c_EnblDisb){
 		$InitQueryPg= get_query_var('page'); $QueriedPage=(empty($InitQueryPg)) ? 1 : $InitQueryPg;
 		if ($QueriedPage==1) {  $content = TitleStart__MPCC.$postHtitle.TitleEnd__MPCC.$content; }
@@ -374,7 +381,8 @@ function get_table_of_contents($content){	global $wpdb,$post;
 		$content .= '<div class="TOC_list__MPCC">  <div class="toctitle__MPCC">'. ( !empty($TOCtitle)  ? $TOCtitle : "Table of Contents").'</div>';
 		$pLink = get_permalink($post->ID); 	$HomeUrl = home_url();  $base_paged_link = _wp_link_page__modified_to_get_base($post,9777797777);
 		foreach ($currentPost as $eachPart){ $partN= $eachPart->part; if ($partN >= 1) {
-			$content .= '<div class="row__MPCC mpccr_'.$partN.'" ><span class="urlE__MPCC">'.( $QueriedPage == $partN ? '<span class="currentActv__MPCC">'.$eachPart->partTITLE .'</span>': '<a class="pageA__MPCC" id="part'.$partN.'" href="'. str_ireplace(9777797777, $partN ,$base_paged_link) .'">' .$eachPart->partTITLE.'</a>') .'</span></div>';			
+			$pTitle= stripslashes($eachPart->partTITLE);
+			$content .= '<div class="row__MPCC mpccr_'.$partN.'" ><span class="urlE__MPCC">'.( $QueriedPage == $partN ? '<span class="currentActv__MPCC">'.$pTitle .'</span>': '<a class="pageA__MPCC" id="part'.$partN.'" href="'. str_ireplace(9777797777, $partN ,$base_paged_link) .'">'. $pTitle .'</a>') .'</span></div>';			
 		  }
 		}
 		$content .= '</div>';	
