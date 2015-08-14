@@ -231,7 +231,9 @@ function startt_func__MPCC(){
 }
 
 //================= generic functions ================//
-function GetPostChapt__MPCC($postid,$part=false){ global $wpdb;
+function GetPostChapt__MPCC($postid,$part=false){ global $wpdb; 
+	if(!is_numeric($postid)) {exit("incorect_postid:".$postid);}
+	if($part && !is_numeric($part)) {exit("incorect_part:".$part);}
 	return $GLOBALS['wpdb']->get_results($wpdb->prepare("SELECT * FROM ".TableName1__MPCC." WHERE postID = '%d'".   ($part ? " AND part = '%d'" : "" ),$postid, $part  ));
 }
 function SanitizedIndxArray__MPCC($post_id){ 
